@@ -57,6 +57,7 @@ services:
     working_dir: /app
     volumes:
       - ./gerador:/app
+      - ./resultados:/resultados
     command: >
       bash -c "pip install --quiet -r /app/requirements.txt && sleep infinity"
     networks:
