@@ -1,9 +1,9 @@
 import argparse, csv, os, random, threading, time
 from adaptadores import EtcdAdapter, CassandraAdapter
 
-def worker(tid, sistema, fim, buf, stop_event):
+def worker(tid, sistema, fim, buf, stop_event, shared_adapter=None):
     rng = random.Random(42 + tid)
-    adaptador = EtcdAdapter(timeout=2.0) if sistema == "etcd" else CassandraAdapter(timeout=2.0)
+    adaptador = shared_adapter if shared_adapter is not None else EtcdAdapter(timeout=2.0)
     val = b"x" * 256
     while not stop_event.is_set() and time.time() < fim:
         op = "GET" if rng.random() < 0.80 else "PUT"
@@ -14,7 +14,7 @@ def worker(tid, sistema, fim, buf, stop_event):
             buf.append((f"{t0_abs:.6f}", tid, op, 1, f"{(time.perf_counter() - t0_mono)*1000:.4f}"))
         except Exception:
             buf.append((f"{t0_abs:.6f}", tid, op, 0, ""))
-    if hasattr(adaptador, "close"):
+    if shared_adapter is None and hasattr(adaptador, "close"):
         adaptador.close()
 
 def main():
@@ -26,13 +26,25 @@ def main():
     args = p.parse_args()
 
     os.makedirs(os.path.dirname(args.saida) or ".", exist_ok=True)
+    shared_adapter = CassandraAdapter(timeout=2.0) if args.sistema == "cassandra" else None
+
     fim = time.time() + args.duracao
     stop_event = threading.Event()
     bufs = [[] for _ in range(args.threads)]
-    threads = [threading.Thread(target=worker, args=(i, args.sistema, fim, bufs[i], stop_event), daemon=True) for i in range(args.threads)]
+    threads = [
+        threading.Thread(
+            target=worker,
+            args=(i, args.sistema, fim, bufs[i], stop_event, shared_adapter),
+            daemon=True,
+        )
+        for i in range(args.threads)
+    ]
     print(f"[INICIO] {args.sistema} N={args.threads} ({args.duracao}s)...")
     for t in threads: t.start()
     for t in threads: t.join()
+
+    if shared_adapter is not None:
+        shared_adapter.close()
 
     total = 0
     with open(args.saida, "w", newline="") as f:

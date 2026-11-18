@@ -70,27 +70,24 @@ class EtcdAdapter:
         raise last_err
 
 
-class CassandraAdapter:
+cclass CassandraAdapter:
     def __init__(self, hosts=None, timeout=2.0, consistency=ConsistencyLevel.ONE):
         target_hosts = hosts or list(ENDPOINTS_CASSANDRA)
         policy = WhiteListRoundRobinPolicy(target_hosts)
         self.cluster = Cluster(
             contact_points=target_hosts,
             load_balancing_policy=policy,
-            connect_timeout=timeout,
+            connect_timeout=max(timeout, 10.0),
         )
         self.session = self.cluster.connect("lab")
         self.session.default_timeout = timeout
         self.consistency = consistency
 
-        self.stmt_put = SimpleStatement(
-            "INSERT INTO kv (k, v) VALUES (%s, %s)",
-            consistency_level=self.consistency,
-        )
-        self.stmt_get = SimpleStatement(
-            "SELECT v FROM kv WHERE k = %s",
-            consistency_level=self.consistency,
-        )
+        self.stmt_put = self.session.prepare("INSERT INTO kv (k, v) VALUES (?, ?)")
+        self.stmt_put.consistency_level = self.consistency
+
+        self.stmt_get = self.session.prepare("SELECT v FROM kv WHERE k = ?")
+        self.stmt_get.consistency_level = self.consistency
 
     def put(self, key: str, value: bytes):
         self.session.execute(self.stmt_put, (key, value), timeout=self.session.default_timeout)
