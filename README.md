@@ -1,6 +1,4 @@
-# latency-compose
-
-**T2 de Sistemas Distribuídos ⚡💥**
+# T2 de Sistemas Distribuídos ⚡💥
 
 Este laboratório sobe uma rede com três nós e um contêiner gerador de carga para comparar `etcd` e `Cassandra` no GitHub Codespaces.
 
