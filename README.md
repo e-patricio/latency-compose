@@ -35,7 +35,7 @@ Deve se subir individualmente ambos os laboratorios, não suba junto!
 3. Verifique a saúde do cluster:
 
    ```bash
-   docker exec n1 sh -c 'ETCDCTL_API=3 etcdctl --endpoints=http://172.21.0.11:2379 endpoint health'
+   docker exec -e ETCDCTL_API=3 n1 etcdctl --endpoints=http://172.21.0.11:2379 endpoint health
    ```
 
 4. Aguarde o contêiner `gerador` instalar as dependências Python. Você pode conferir:
@@ -126,12 +126,22 @@ docker exec gerador python /app/stale_reads.py \
   --saida /app/stale_cassandra.csv
 ```
 
-Para testar o etcd, troque `--sistema cassandra` por `--sistema etcd` e altere o nome do arquivo de saída.
+
+```bash
+docker exec gerador python /app/stale_reads.py \
+  --sistema etcd \
+  --pares 10000 \
+  --saida /app/stale_etcd.csv
+```
 
 Copie o CSV gerado para a máquina do Codespace:
 
 ```bash
 docker cp gerador:/app/stale_cassandra.csv ./resultados/stale_cassandra.csv
+```
+
+```bash
+docker cp gerador:/app/stale_etcd.csv ./resultados/stale_etcd.csv
 ```
 
 ## 6. Trocar de sistema
