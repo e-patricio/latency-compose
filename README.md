@@ -16,7 +16,8 @@ Este laboratório sobe uma rede com três nós e um contêiner gerador de carga 
   - [5.2. Experimento E2: baseline](#52-experimento-e2-baseline)
   - [5.3. Experimento E3: leituras obsoletas](#53-experimento-e3-leituras-obsoletas)
 - [6. Trocar de sistema](#6-trocar-de-sistema)
-- [7. Encerrar tudo](#7-encerrar-tudo)
+- [7. Geração de gráficos](#7-geração-de-gráficos)
+- [8. Encerrar tudo](#8-encerrar-tudo)
 
 ## 0. Antes de começar
 
@@ -378,7 +379,37 @@ docker compose -f etcd.yml down
 
 Depois, execute a subida correspondente conforme a [seção 1](#1-subir-o-laboratório-do-etcd) ou a [seção 2](#2-subir-o-laboratório-do-cassandra).
 
-## 7. Encerrar tudo
+## 7. Geração de gráficos
+
+Depois de gerar os CSVs do E1 para `etcd` e Cassandra, copie-os para a pasta de entrada do script. Os comandos do E1 salvam os arquivos em `gerador/resultados/e1/`, enquanto o script lê `resultados/e1/` na raiz do repositório:
+
+```bash
+mkdir -p resultados/e1
+cp gerador/resultados/e1/*.csv resultados/e1/
+```
+
+O script usa os arquivos de `N=1, 2, 4, 8, 16 e 32` e salva o gráfico em `graphs/saturacao_e1.png`.
+
+Na raiz do repositório, acesse a pasta dos scripts:
+
+```bash
+cd graphs
+```
+
+Instale o `pip` e as dependências necessárias (`numpy`, `pandas` e `matplotlib`):
+
+```bash
+sudo apt update && sudo apt install -y python3-pip
+pip3 install numpy pandas matplotlib
+```
+
+Gere o gráfico:
+
+```bash
+python3 gerar_grafico_e1.py
+```
+
+## 8. Encerrar tudo
 
 Pare o contêiner do sistema ativo:
 
