@@ -70,7 +70,8 @@ class EtcdAdapter:
         raise last_err
 
 
-cclass CassandraAdapter:
+
+class CassandraAdapter:
     def __init__(self, hosts=None, timeout=2.0, consistency=ConsistencyLevel.ONE):
         target_hosts = hosts or list(ENDPOINTS_CASSANDRA)
         policy = WhiteListRoundRobinPolicy(target_hosts)
